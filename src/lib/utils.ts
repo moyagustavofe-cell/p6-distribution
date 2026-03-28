@@ -25,3 +25,9 @@ export function generateQuotationNumber() {
   const random = Math.floor(Math.random() * 10000).toString().padStart(4, "0")
   return `Q-${year}-${random}`
 }
+
+export function generateSalesQuoteNumber() {
+  const year = new Date().getFullYear()
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, "0")
+  return `SQ-${year}-${random}`
+}

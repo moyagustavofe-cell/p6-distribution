@@ -15,26 +15,27 @@ model Category {
 }
 
 model Item {
-  id                  String       @id @default(cuid())
-  name                String
-  description         String?
-  partNumber          String?      @unique
-  categoryId          String?
-  category            Category?    @relation(fields: [categoryId], references: [id])
-  unitOfMeasure       String       @default("unit")
-  technicalSpecs      Json?
-  manufacturer        String?
-  manufacturerPartNo  String?
-  hsCode              String?
-  isActive            Boolean      @default(true)
-  attachments         Attachment[]
-  quotationItems      QuotationItem[]
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
+  id                 String           @id @default(cuid())
+  name               String
+  description        String?
+  partNumber         String?          @unique
+  categoryId         String?
+  category           Category?        @relation(fields: [categoryId], references: [id])
+  unitOfMeasure      String           @default("unit")
+  technicalSpecs     Json?
+  manufacturer       String?
+  manufacturerPartNo String?
+  hsCode             String?
+  isActive           Boolean          @default(true)
+  attachments        Attachment[]
+  quotationItems     QuotationItem[]
+  salesQuoteItems    SalesQuoteItem[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
 }
 
 model Supplier {
-  id          String       @id @default(cuid())
+  id          String      @id @default(cuid())
   name        String
   country     String?
   contactName String?
@@ -42,10 +43,10 @@ model Supplier {
   phone       String?
   website     String?
   notes       String?
-  isActive    Boolean      @default(true)
+  isActive    Boolean     @default(true)
   quotations  Quotation[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 model Quotation {
@@ -101,15 +102,79 @@ model QuotationItem {
 }
 
 model Attachment {
-  id           String     @id @default(cuid())
+  id           String      @id @default(cuid())
   filename     String
   originalName String
   mimeType     String
   size         Int
   url          String
   itemId       String?
-  item         Item?      @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  item         Item?       @relation(fields: [itemId], references: [id], onDelete: Cascade)
   quotationId  String?
-  quotation    Quotation? @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  quotation    Quotation?  @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  salesQuoteId String?
+  salesQuote   SalesQuote? @relation(fields: [salesQuoteId], references: [id], onDelete: Cascade)
+  createdAt    DateTime    @default(now())
+}
+
+model Customer {
+  id          String       @id @default(cuid())
+  name        String
+  company     String?
+  taxId       String?
+  email       String?
+  phone       String?
+  address     String?
+  country     String?
+  notes       String?
+  isActive    Boolean      @default(true)
+  salesQuotes SalesQuote[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model SalesQuote {
+  id           String           @id @default(cuid())
+  quoteNumber  String           @unique
+  customerId   String
+  customer     Customer         @relation(fields: [customerId], references: [id])
+  date         DateTime         @default(now())
+  validUntil   DateTime?
+  currency     String           @default("USD")
+  status       SalesQuoteStatus @default(DRAFT)
+  paymentTerms String?
+  deliveryTime String?
+  incoterms    String?
+  notes        String?
+  totalAmount  Float?
+  items        SalesQuoteItem[]
+  attachments  Attachment[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+enum SalesQuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+model SalesQuoteItem {
+  id           String     @id @default(cuid())
+  salesQuoteId String
+  salesQuote   SalesQuote @relation(fields: [salesQuoteId], references: [id], onDelete: Cascade)
+  itemId       String?
+  item         Item?      @relation(fields: [itemId], references: [id])
+  description  String
+  partNumber   String?
+  quantity     Float
+  unitCost     Float?
+  unitPrice    Float
+  totalPrice   Float
+  unit         String     @default("unit")
+  notes        String?
   createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
