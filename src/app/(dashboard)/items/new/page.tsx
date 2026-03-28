@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { Header } from "@/components/layout/header"
 import { ItemForm } from "@/components/items/item-form"
 import { prisma } from "@/lib/prisma"

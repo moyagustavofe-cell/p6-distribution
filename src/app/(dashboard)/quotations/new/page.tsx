@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { Header } from "@/components/layout/header"
 import { QuotationForm } from "@/components/quotations/quotation-form"
 import { prisma } from "@/lib/prisma"

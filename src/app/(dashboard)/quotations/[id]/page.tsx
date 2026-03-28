@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { notFound } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { QuotationForm } from "@/components/quotations/quotation-form"
