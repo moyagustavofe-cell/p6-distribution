@@ -8,6 +8,9 @@ interface SupplierFormProps {
   supplier?: Supplier
 }
 
+const input = "h-9 w-full px-3 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:border-black focus:border-[1.5px] bg-white"
+const label = "block text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium mb-1.5"
+
 export function SupplierForm({ supplier }: SupplierFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -26,16 +29,9 @@ export function SupplierForm({ supplier }: SupplierFormProps) {
       notes: formData.get("notes") as string,
       isActive: formData.get("isActive") === "on",
     }
-
     const url = supplier ? `/api/suppliers/${supplier.id}` : "/api/suppliers"
     const method = supplier ? "PUT" : "POST"
-
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    })
-
+    const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
     if (res.ok) {
       const result = await res.json()
       router.push(`/suppliers/${result.id}`)
@@ -44,43 +40,46 @@ export function SupplierForm({ supplier }: SupplierFormProps) {
     setLoading(false)
   }
 
-  const field = (label: string, name: string, props?: React.InputHTMLAttributes<HTMLInputElement>) => (
+  const field = (labelText: string, name: string, props?: React.InputHTMLAttributes<HTMLInputElement>) => (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <label className={label}>{labelText}</label>
       <input name={name} defaultValue={(supplier as Record<string, unknown>)?.[name] as string || ""}
-        className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        {...props} />
+        className={input} {...props} />
     </div>
   )
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
-      <div className="bg-white rounded-xl border p-6 space-y-4">
-        <h2 className="font-medium text-gray-900">Supplier Information</h2>
+      <div className="bg-white border border-[#E5E5E5] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6 flex flex-col gap-4">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.05em] text-[#737373]">Supplier Information</h2>
+
         {field("Name *", "name", { required: true })}
         {field("Country", "country")}
         {field("Contact Name", "contactName")}
         {field("Email", "email", { type: "email" })}
         {field("Phone", "phone", { type: "tel" })}
         {field("Website", "website", { type: "url" })}
+
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+          <label className={label}>Notes</label>
           <textarea name="notes" defaultValue={supplier?.notes || ""} rows={3}
-            className="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:border-black focus:border-[1.5px] bg-white resize-none" />
         </div>
+
         <div className="flex items-center gap-2">
           <input type="checkbox" name="isActive" id="isActive" defaultChecked={supplier?.isActive ?? true}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-          <label htmlFor="isActive" className="text-sm text-gray-700">Active supplier</label>
+            className="rounded border-[#E5E5E5]" />
+          <label htmlFor="isActive" className="text-sm text-[#525252]">Active supplier</label>
         </div>
       </div>
+
       <div className="flex gap-3">
         <button type="submit" disabled={loading}
-          className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors">
+          className="h-9 px-5 bg-black text-white text-sm font-medium rounded-md hover:bg-[#171717] disabled:opacity-50 transition-colors">
           {loading ? "Saving..." : supplier ? "Save Changes" : "Create Supplier"}
         </button>
         <button type="button" onClick={() => router.back()}
-          className="rounded-lg border px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+          className="h-9 px-5 border border-[#E5E5E5] text-sm font-medium text-[#525252] rounded-md hover:bg-[#FAFAFA] transition-colors">
           Cancel
         </button>
       </div>

@@ -30,6 +30,10 @@ interface QuotationFormProps {
   items: Item[]
 }
 
+const inp = "h-9 w-full px-3 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:border-black focus:border-[1.5px] bg-white"
+const lbl = "block text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium mb-1.5"
+const cellInp = "w-full h-7 px-2 border border-[#E5E5E5] rounded text-xs focus:outline-none focus:border-black bg-white"
+
 export function QuotationForm({ quotation, suppliers, items }: QuotationFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -64,13 +68,7 @@ export function QuotationForm({ quotation, suppliers, items }: QuotationFormProp
       if (i !== index) return li
       if (field === "itemId" && value) {
         const item = items.find((it) => it.id === value)
-        return {
-          ...li,
-          itemId: value as string,
-          description: item?.name || li.description,
-          partNumber: item?.partNumber || li.partNumber,
-          unit: item?.unitOfMeasure || li.unit,
-        }
+        return { ...li, itemId: value as string, description: item?.name || li.description, partNumber: item?.partNumber || li.partNumber, unit: item?.unitOfMeasure || li.unit }
       }
       return { ...li, [field]: value }
     }))
@@ -80,7 +78,6 @@ export function QuotationForm({ quotation, suppliers, items }: QuotationFormProp
     e.preventDefault()
     setLoading(true)
     const formData = new FormData(e.currentTarget)
-
     const data = {
       supplierId: formData.get("supplierId") as string,
       date: formData.get("date") as string,
@@ -94,16 +91,9 @@ export function QuotationForm({ quotation, suppliers, items }: QuotationFormProp
       totalAmount,
       items: lineItems,
     }
-
     const url = quotation ? `/api/quotations/${quotation.id}` : "/api/quotations"
     const method = quotation ? "PUT" : "POST"
-
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    })
-
+    const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
     if (res.ok) {
       const result = await res.json()
       router.push(`/quotations/${result.id}`)
@@ -130,154 +120,146 @@ export function QuotationForm({ quotation, suppliers, items }: QuotationFormProp
     if (res.ok) setAttachments((prev) => prev.filter((a) => a.id !== id))
   }
 
-  const inputClass = "w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl">
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Header Info */}
-        <div className="bg-white rounded-xl border p-6 space-y-4">
-          <h2 className="font-medium text-gray-900">Quotation Details</h2>
+        {/* Quotation Details */}
+        <div className="bg-white border border-[#E5E5E5] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6 flex flex-col gap-4">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.05em] text-[#737373]">Quotation Details</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Supplier *</label>
-              <select name="supplierId" required defaultValue={quotation?.supplierId || ""}
-                className={inputClass}>
+              <label className={lbl}>Supplier *</label>
+              <select name="supplierId" required defaultValue={quotation?.supplierId || ""} className={inp}>
                 <option value="">Select supplier...</option>
                 {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select name="status" defaultValue={quotation?.status || "DRAFT"} className={inputClass}>
+              <label className={lbl}>Status</label>
+              <select name="status" defaultValue={quotation?.status || "DRAFT"} className={inp}>
                 {["DRAFT","SENT_RFQ","RECEIVED","UNDER_REVIEW","APPROVED","REJECTED","EXPIRED"].map((s) => (
-                  <option key={s} value={s}>{s.replace("_", " ")}</option>
+                  <option key={s} value={s}>{s.replace(/_/g, " ")}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-              <input type="date" name="date"
-                defaultValue={quotation?.date ? new Date(quotation.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]}
-                className={inputClass} />
+              <label className={lbl}>Date</label>
+              <input type="date" name="date" className={inp}
+                defaultValue={quotation?.date ? new Date(quotation.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0]} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Valid Until</label>
-              <input type="date" name="validUntil"
-                defaultValue={quotation?.validUntil ? new Date(quotation.validUntil).toISOString().split("T")[0] : ""}
-                className={inputClass} />
+              <label className={lbl}>Valid Until</label>
+              <input type="date" name="validUntil" className={inp}
+                defaultValue={quotation?.validUntil ? new Date(quotation.validUntil).toISOString().split("T")[0] : ""} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
-              <select value={currency} onChange={(e) => setCurrency(e.target.value)} className={inputClass}>
+              <label className={lbl}>Currency</label>
+              <select value={currency} onChange={(e) => setCurrency(e.target.value)} className={inp}>
                 {["USD","EUR","GBP","ARS"].map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Incoterms</label>
-              <select name="incoterms" defaultValue={quotation?.incoterms || ""} className={inputClass}>
+              <label className={lbl}>Incoterms</label>
+              <select name="incoterms" defaultValue={quotation?.incoterms || ""} className={inp}>
                 <option value="">None</option>
-                {["EXW","FOB","CIF","DAP","DDP","FCA","CPT","CIP"].map((i) => <option key={i} value={i}>{i}</option>)}
+                {["EXW","FOB","CIF","DAP","DDP","FCA","CPT","CIP"].map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Payment Terms</label>
-              <input name="paymentTerms" defaultValue={quotation?.paymentTerms || ""} className={inputClass}
+              <label className={lbl}>Payment Terms</label>
+              <input name="paymentTerms" defaultValue={quotation?.paymentTerms || ""} className={inp}
                 placeholder="e.g. 30% advance, 70% before shipment" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Time</label>
-              <input name="deliveryTime" defaultValue={quotation?.deliveryTime || ""} className={inputClass}
+              <label className={lbl}>Delivery Time</label>
+              <input name="deliveryTime" defaultValue={quotation?.deliveryTime || ""} className={inp}
                 placeholder="e.g. 8-10 weeks ARO" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-            <textarea name="notes" defaultValue={quotation?.notes || ""} rows={2} className={inputClass} />
+            <label className={lbl}>Notes</label>
+            <textarea name="notes" defaultValue={quotation?.notes || ""} rows={2}
+              className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:border-black focus:border-[1.5px] bg-white resize-none" />
           </div>
         </div>
 
         {/* Line Items */}
-        <div className="bg-white rounded-xl border overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b">
-            <h2 className="font-medium text-gray-900">Line Items</h2>
+        <div className="bg-white border border-[#E5E5E5] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[#F5F5F5]">
+            <h2 className="text-sm font-semibold text-[#171717]">Line Items</h2>
             <button type="button" onClick={addLineItem}
-              className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 transition-colors">
-              <Plus className="h-3.5 w-3.5" />
+              className="flex items-center gap-1.5 h-7 px-3 border border-[#E5E5E5] text-xs font-medium text-[#525252] rounded-md hover:bg-[#FAFAFA] transition-colors">
+              <Plus size={12} />
               Add Item
             </button>
           </div>
 
           {lineItems.length === 0 ? (
-            <div className="text-center py-8 text-gray-400 text-sm">
-              No items yet. Click &quot;Add Item&quot; to start.
+            <div className="p-12 text-center">
+              <p className="text-sm text-[#737373]">No items yet. Click &quot;Add Item&quot; to start.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="text-left px-3 py-2 font-medium text-gray-600 w-48">Catalog Item</th>
-                    <th className="text-left px-3 py-2 font-medium text-gray-600">Description</th>
-                    <th className="text-left px-3 py-2 font-medium text-gray-600 w-32">Part No.</th>
-                    <th className="text-left px-3 py-2 font-medium text-gray-600 w-20">Qty</th>
-                    <th className="text-left px-3 py-2 font-medium text-gray-600 w-20">Unit</th>
-                    <th className="text-left px-3 py-2 font-medium text-gray-600 w-28">Unit Price</th>
-                    <th className="text-left px-3 py-2 font-medium text-gray-600 w-28">Total</th>
-                    <th className="w-8 px-2"></th>
+                <thead>
+                  <tr className="border-b border-[#F5F5F5]">
+                    <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-44">Catalog Item</th>
+                    <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium">Description</th>
+                    <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-28">Part No.</th>
+                    <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-20">Qty</th>
+                    <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-16">Unit</th>
+                    <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-28">Unit Price</th>
+                    <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-28">Total</th>
+                    <th className="w-8"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody>
                   {lineItems.map((li, index) => (
-                    <tr key={index}>
+                    <tr key={index} className="border-b border-[#F5F5F5] last:border-0">
                       <td className="px-3 py-2">
-                        <select value={li.itemId || ""} onChange={(e) => updateLineItem(index, "itemId", e.target.value)}
-                          className="w-full rounded border px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <select value={li.itemId || ""} onChange={(e) => updateLineItem(index, "itemId", e.target.value)} className={cellInp}>
                           <option value="">Free text</option>
                           {items.map((it) => <option key={it.id} value={it.id}>{it.name}</option>)}
                         </select>
                       </td>
                       <td className="px-3 py-2">
                         <input value={li.description} onChange={(e) => updateLineItem(index, "description", e.target.value)}
-                          className="w-full rounded border px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          placeholder="Description" required />
+                          className={cellInp} placeholder="Description" required />
                       </td>
                       <td className="px-3 py-2">
                         <input value={li.partNumber} onChange={(e) => updateLineItem(index, "partNumber", e.target.value)}
-                          className="w-full rounded border px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          placeholder="Part #" />
+                          className={cellInp} placeholder="Part #" />
                       </td>
                       <td className="px-3 py-2">
                         <input type="number" value={li.quantity} min={0.01} step={0.01}
                           onChange={(e) => updateLineItem(index, "quantity", parseFloat(e.target.value) || 0)}
-                          className="w-full rounded border px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                          className={cellInp} />
                       </td>
                       <td className="px-3 py-2">
                         <input value={li.unit} onChange={(e) => updateLineItem(index, "unit", e.target.value)}
-                          className="w-full rounded border px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          placeholder="unit" />
+                          className={cellInp} placeholder="unit" />
                       </td>
                       <td className="px-3 py-2">
                         <input type="number" value={li.unitPrice} min={0} step={0.01}
                           onChange={(e) => updateLineItem(index, "unitPrice", parseFloat(e.target.value) || 0)}
-                          className="w-full rounded border px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                          className={cellInp} />
                       </td>
-                      <td className="px-3 py-2 text-gray-700 font-medium whitespace-nowrap">
+                      <td className="px-3 py-2 text-sm font-medium text-[#171717] whitespace-nowrap">
                         {formatCurrency(li.quantity * li.unitPrice, currency)}
                       </td>
                       <td className="px-2 py-2">
                         <button type="button" onClick={() => removeLineItem(index)}
-                          className="text-red-400 hover:text-red-600 transition-colors">
-                          <Trash2 className="h-4 w-4" />
+                          className="text-[#D4D4D4] hover:text-[#DC2626] transition-colors">
+                          <Trash2 size={14} />
                         </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
-                <tfoot className="bg-gray-50 border-t">
-                  <tr>
-                    <td colSpan={6} className="px-3 py-3 text-right font-medium text-gray-700">Total:</td>
-                    <td className="px-3 py-3 font-bold text-gray-900">{formatCurrency(totalAmount, currency)}</td>
+                <tfoot>
+                  <tr className="border-t border-[#E5E5E5] bg-[#FAFAFA]">
+                    <td colSpan={6} className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-[0.05em] text-[#737373]">Total</td>
+                    <td className="px-3 py-3 text-sm font-extrabold text-[#171717]">{formatCurrency(totalAmount, currency)}</td>
                     <td></td>
                   </tr>
                 </tfoot>
@@ -288,42 +270,46 @@ export function QuotationForm({ quotation, suppliers, items }: QuotationFormProp
 
         <div className="flex gap-3">
           <button type="submit" disabled={loading}
-            className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors">
+            className="h-9 px-5 bg-black text-white text-sm font-medium rounded-md hover:bg-[#171717] disabled:opacity-50 transition-colors">
             {loading ? "Saving..." : quotation ? "Save Changes" : "Create Quotation"}
           </button>
           <button type="button" onClick={() => router.back()}
-            className="rounded-lg border px-6 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            className="h-9 px-5 border border-[#E5E5E5] text-sm font-medium text-[#525252] rounded-md hover:bg-[#FAFAFA] transition-colors">
             Cancel
           </button>
         </div>
       </form>
 
       {/* Attachments */}
-      <div className="bg-white rounded-xl border p-6">
-        <h2 className="font-medium text-gray-900 mb-4">Attachments</h2>
-        {!quotation ? (
-          <p className="text-sm text-gray-400">Save the quotation first to add attachments</p>
-        ) : (
-          <>
-            <label className="flex items-center gap-2 cursor-pointer rounded-lg border-2 border-dashed border-gray-300 p-4 hover:border-blue-400 transition-colors">
-              <input type="file" className="hidden" onChange={handleFileUpload}
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" />
-              <span className="text-sm text-gray-500">Click to upload quotation PDF or other files</span>
-            </label>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {attachments.map((att) => (
-                <div key={att.id} className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2">
-                  <a href={att.url} target="_blank" rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline">
-                    {att.originalName}
-                  </a>
-                  <button onClick={() => handleDeleteAttachment(att.id)}
-                    className="text-xs text-red-500 hover:text-red-700">×</button>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+      <div className="bg-white border border-[#E5E5E5] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+        <div className="px-5 py-4 border-b border-[#F5F5F5]">
+          <h2 className="text-sm font-semibold text-[#171717]">Attachments</h2>
+        </div>
+        <div className="p-5">
+          {!quotation ? (
+            <p className="text-sm text-[#A3A3A3]">Save the quotation first to add attachments.</p>
+          ) : (
+            <>
+              <label className="flex items-center justify-center cursor-pointer rounded-lg border-2 border-dashed border-[#E5E5E5] p-4 hover:border-[#A3A3A3] transition-colors">
+                <input type="file" className="hidden" onChange={handleFileUpload}
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" />
+                <span className="text-sm text-[#737373]">Click to upload quotation PDF or other files</span>
+              </label>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {attachments.map((att) => (
+                  <div key={att.id} className="flex items-center gap-2 rounded-lg bg-[#F5F5F5] px-3 py-2">
+                    <a href={att.url} target="_blank" rel="noopener noreferrer"
+                      className="text-sm text-[#171717] hover:underline">
+                      {att.originalName}
+                    </a>
+                    <button onClick={() => handleDeleteAttachment(att.id)}
+                      className="text-xs text-[#DC2626] hover:text-red-700 transition-colors">×</button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

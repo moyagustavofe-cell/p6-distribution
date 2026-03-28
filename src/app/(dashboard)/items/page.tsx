@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Header } from "@/components/layout/header"
 import { prisma } from "@/lib/prisma"
-import { Plus, Package } from "lucide-react"
+import { Plus } from "lucide-react"
 
 export default async function ItemsPage() {
   const items = await prisma.item.findMany({
@@ -15,59 +15,47 @@ export default async function ItemsPage() {
         title="Items"
         subtitle="Product catalog for oil & gas supplies"
         actions={
-          <Link
-            href="/items/new"
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
+          <Link href="/items/new"
+            className="flex items-center gap-2 h-9 px-4 bg-black text-white text-sm font-medium rounded-md hover:bg-[#171717] transition-colors">
+            <Plus size={14} />
             New Item
           </Link>
         }
       />
-      <div className="p-6">
+      <div className="p-8">
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border bg-white py-16">
-            <Package className="h-12 w-12 text-gray-300" />
-            <p className="mt-3 text-gray-500">No items yet</p>
-            <Link href="/items/new" className="mt-4 text-sm text-blue-600 hover:underline">
-              Add your first item
-            </Link>
+          <div className="bg-white border border-[#E5E5E5] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-12 text-center">
+            <p className="text-sm text-[#737373]">No items yet.{" "}
+              <Link href="/items/new" className="text-black underline">Add your first item</Link>
+            </p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Part Number</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Category</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Manufacturer</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">UOM</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Files</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                  <th className="px-4 py-3"></th>
+          <div className="bg-white border border-[#E5E5E5] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.06)] overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-[#F5F5F5]">
+                  {["Name", "Part Number", "Category", "Manufacturer", "UOM", "Files", "Status", ""].map((h) => (
+                    <th key={h} className="text-left px-5 py-3 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium">{h}</th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody>
                 {items.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">{item.name}</td>
-                    <td className="px-4 py-3 text-gray-500 font-mono text-xs">{item.partNumber || "—"}</td>
-                    <td className="px-4 py-3 text-gray-500">{item.category?.name || "—"}</td>
-                    <td className="px-4 py-3 text-gray-500">{item.manufacturer || "—"}</td>
-                    <td className="px-4 py-3 text-gray-500">{item.unitOfMeasure}</td>
-                    <td className="px-4 py-3 text-gray-500">{item._count.attachments}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        item.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-500"
-                      }`}>
+                  <tr key={item.id} className="border-b border-[#F5F5F5] last:border-0 hover:bg-[#FAFAFA] transition-colors cursor-pointer">
+                    <td className="px-5 py-3 text-sm font-medium text-[#171717]">{item.name}</td>
+                    <td className="px-5 py-3 font-mono text-xs text-[#737373]">{item.partNumber || "—"}</td>
+                    <td className="px-5 py-3 text-sm text-[#525252]">{item.category?.name || "—"}</td>
+                    <td className="px-5 py-3 text-sm text-[#525252]">{item.manufacturer || "—"}</td>
+                    <td className="px-5 py-3 text-sm text-[#737373]">{item.unitOfMeasure}</td>
+                    <td className="px-5 py-3 text-sm text-[#737373]">{item._count.attachments}</td>
+                    <td className="px-5 py-3">
+                      <span className="text-xs px-2.5 py-1 rounded-full border"
+                        style={{ color: item.isActive ? "#16A34A" : "#737373", borderColor: item.isActive ? "#16A34A" : "#E5E5E5" }}>
                         {item.isActive ? "Active" : "Inactive"}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <Link href={`/items/${item.id}`} className="text-blue-600 hover:underline text-xs">
-                        Edit
-                      </Link>
+                    <td className="px-5 py-3">
+                      <Link href={`/items/${item.id}`} className="text-xs text-[#737373] hover:text-black transition-colors">Edit</Link>
                     </td>
                   </tr>
                 ))}

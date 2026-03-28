@@ -2,14 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import {
-  LayoutDashboard,
-  Package,
-  Building2,
-  FileText,
-  ChevronRight,
-} from "lucide-react"
+import { LayoutDashboard, Package, Building2, FileText } from "lucide-react"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -22,44 +15,37 @@ export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <div className="flex h-full w-64 flex-col bg-gray-900">
+    <div className="sticky top-0 flex h-screen w-56 flex-col border-r border-[#E5E5E5] bg-white">
       {/* Logo */}
-      <div className="flex h-16 items-center gap-3 px-6 border-b border-gray-700">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600">
-          <span className="text-sm font-bold text-white">P6</span>
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-white">P6 Distribution</p>
-          <p className="text-xs text-gray-400">Oil & Gas Supplies</p>
-        </div>
+      <div className="flex h-14 items-center border-b border-[#E5E5E5] px-5">
+        <span className="text-sm font-extrabold tracking-tight text-black">P6 Distribution</span>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex flex-1 flex-col gap-0.5 px-2 py-3">
         {navigation.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
           return (
             <Link
               key={item.name}
               href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              className={[
+                "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors",
                 isActive
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-400 hover:bg-gray-800 hover:text-white"
-              )}
+                  ? "bg-[#F5F5F5] font-medium text-[#171717]"
+                  : "text-[#737373] hover:bg-[#FAFAFA] hover:text-[#171717]",
+              ].join(" ")}
             >
-              <item.icon className="h-5 w-5 flex-shrink-0" />
+              <item.icon size={15} strokeWidth={isActive ? 2 : 1.5} />
               {item.name}
-              {isActive && <ChevronRight className="ml-auto h-4 w-4" />}
             </Link>
           )
         })}
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-gray-700 p-4">
-        <p className="text-xs text-gray-500">Vaca Muerta, Argentina</p>
+      <div className="border-t border-[#E5E5E5] px-5 py-4">
+        <p className="text-[11px] text-[#737373]">Vaca Muerta, Argentina</p>
       </div>
     </div>
   )
