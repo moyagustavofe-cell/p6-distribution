@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  items     Item[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Item {
+  id                  String       @id @default(cuid())
+  name                String
+  description         String?
+  partNumber          String?      @unique
+  categoryId          String?
+  category            Category?    @relation(fields: [categoryId], references: [id])
+  unitOfMeasure       String       @default("unit")
+  technicalSpecs      Json?
+  manufacturer        String?
+  manufacturerPartNo  String?
+  hsCode              String?
+  isActive            Boolean      @default(true)
+  attachments         Attachment[]
+  quotationItems      QuotationItem[]
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+}
+
+model Supplier {
+  id          String       @id @default(cuid())
+  name        String
+  country     String?
+  contactName String?
+  email       String?
+  phone       String?
+  website     String?
+  notes       String?
+  isActive    Boolean      @default(true)
+  quotations  Quotation[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Quotation {
+  id              String          @id @default(cuid())
+  quotationNumber String          @unique
+  supplierId      String
+  supplier        Supplier        @relation(fields: [supplierId], references: [id])
+  date            DateTime        @default(now())
+  validUntil      DateTime?
+  currency        String          @default("USD")
+  status          QuotationStatus @default(DRAFT)
+  paymentTerms    String?
+  deliveryTime    String?
+  incoterms       String?
+  notes           String?
+  totalAmount     Float?
+  items           QuotationItem[]
+  attachments     Attachment[]
+  rfqSentAt       DateTime?
+  approvedAt      DateTime?
+  approvedBy      String?
+  purchaseOrderId String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+enum QuotationStatus {
+  DRAFT
+  SENT_RFQ
+  RECEIVED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+model QuotationItem {
+  id           String    @id @default(cuid())
+  quotationId  String
+  quotation    Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  itemId       String?
+  item         Item?     @relation(fields: [itemId], references: [id])
+  description  String
+  partNumber   String?
+  quantity     Float
+  unitPrice    Float
+  totalPrice   Float
+  unit         String    @default("unit")
+  leadTimeDays Int?
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Attachment {
+  id           String     @id @default(cuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  url          String
+  itemId       String?
+  item         Item?      @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  quotationId  String?
+  quotation    Quotation? @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+}
