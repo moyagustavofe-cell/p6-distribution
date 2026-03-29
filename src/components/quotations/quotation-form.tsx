@@ -120,6 +120,15 @@ export function QuotationForm({ quotation, suppliers, items }: QuotationFormProp
     if (res.ok) setAttachments((prev) => prev.filter((a) => a.id !== id))
   }
 
+  async function handleDelete() {
+    if (!quotation || !confirm(`Delete quotation ${quotation.quotationNumber}? This cannot be undone.`)) return
+    const res = await fetch(`/api/quotations/${quotation.id}`, { method: "DELETE" })
+    if (res.ok) {
+      router.push("/quotations")
+      router.refresh()
+    }
+  }
+
   return (
     <div className="space-y-6 max-w-6xl">
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -277,6 +286,12 @@ export function QuotationForm({ quotation, suppliers, items }: QuotationFormProp
             className="h-9 px-5 border border-[#E5E5E5] text-sm font-medium text-[#525252] rounded-md hover:bg-[#FAFAFA] transition-colors">
             Cancel
           </button>
+          {quotation && (
+            <button type="button" onClick={handleDelete}
+              className="h-9 px-5 ml-auto border border-[#FCA5A5] text-sm font-medium text-[#DC2626] rounded-md hover:bg-[#FEF2F2] transition-colors">
+              Delete Quotation
+            </button>
+          )}
         </div>
       </form>
 

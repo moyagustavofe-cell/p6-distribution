@@ -15,6 +15,15 @@ export function SupplierForm({ supplier }: SupplierFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
+  async function handleDelete() {
+    if (!supplier || !confirm(`Delete "${supplier.name}"? This cannot be undone.`)) return
+    const res = await fetch(`/api/suppliers/${supplier.id}`, { method: "DELETE" })
+    if (res.ok) {
+      router.push("/suppliers")
+      router.refresh()
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
@@ -82,6 +91,12 @@ export function SupplierForm({ supplier }: SupplierFormProps) {
           className="h-9 px-5 border border-[#E5E5E5] text-sm font-medium text-[#525252] rounded-md hover:bg-[#FAFAFA] transition-colors">
           Cancel
         </button>
+        {supplier && (
+          <button type="button" onClick={handleDelete}
+            className="h-9 px-5 ml-auto border border-[#FCA5A5] text-sm font-medium text-[#DC2626] rounded-md hover:bg-[#FEF2F2] transition-colors">
+            Delete Supplier
+          </button>
+        )}
       </div>
     </form>
   )

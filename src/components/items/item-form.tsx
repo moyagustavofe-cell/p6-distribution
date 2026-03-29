@@ -64,6 +64,16 @@ export function ItemForm({ item, categories }: ItemFormProps) {
     if (res.ok) setAttachments((prev) => prev.filter((a) => a.id !== id))
   }
 
+  async function handleDeleteItem() {
+    if (!item) return
+    if (!confirm(`Delete "${item.name}"? This cannot be undone.`)) return
+    const res = await fetch(`/api/items/${item.id}`, { method: "DELETE" })
+    if (res.ok) {
+      router.push("/items")
+      router.refresh()
+    }
+  }
+
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-6">
@@ -140,6 +150,12 @@ export function ItemForm({ item, categories }: ItemFormProps) {
             className="h-9 px-5 border border-[#E5E5E5] text-sm font-medium text-[#525252] rounded-md hover:bg-[#FAFAFA] transition-colors">
             Cancel
           </button>
+          {item && (
+            <button type="button" onClick={handleDeleteItem}
+              className="h-9 px-5 ml-auto border border-[#FCA5A5] text-sm font-medium text-[#DC2626] rounded-md hover:bg-[#FEF2F2] transition-colors">
+              Delete Item
+            </button>
+          )}
         </div>
       </form>
 
