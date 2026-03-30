@@ -4,6 +4,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { CustomerForm } from "@/components/customers/customer-form"
+import { CustomerAttachments } from "@/components/customers/customer-attachments"
 import { prisma } from "@/lib/prisma"
 import { formatDate, formatCurrency } from "@/lib/utils"
 
@@ -20,9 +21,8 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
   const customer = await prisma.customer.findUnique({
     where: { id },
     include: {
-      salesQuotes: {
-        orderBy: { createdAt: "desc" },
-      },
+      salesQuotes: { orderBy: { createdAt: "desc" } },
+      attachments: { orderBy: { createdAt: "desc" } },
     },
   })
   if (!customer) notFound()
@@ -32,6 +32,8 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
       <Header title={customer.name} subtitle={customer.company || "Customer details"} />
       <div className="p-6 space-y-6">
         <CustomerForm customer={customer} />
+
+        <CustomerAttachments customerId={customer.id} attachments={customer.attachments} />
 
         {/* Sales Quotes */}
         <div className="bg-white border border-[#E5E5E5] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.06)]">

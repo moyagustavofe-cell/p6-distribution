@@ -8,6 +8,7 @@ export async function POST(request: Request) {
   const itemId = formData.get("itemId") as string | null
   const quotationId = formData.get("quotationId") as string | null
   const salesQuoteId = formData.get("salesQuoteId") as string | null
+  const customerId = formData.get("customerId") as string | null
 
   if (!file) return NextResponse.json({ error: "No file" }, { status: 400 })
 
@@ -18,6 +19,7 @@ export async function POST(request: Request) {
       itemId: itemId || null,
       quotationId: quotationId || null,
       salesQuoteId: salesQuoteId || null,
+      customerId: customerId || null,
     },
   })
   return NextResponse.json(attachment, { status: 201 })
