@@ -20,6 +20,7 @@ interface LineItem {
   quantity: number
   unitPrice: number
   unit: string
+  weightKg?: number
   leadTimeDays?: number
   notes?: string
 }
@@ -48,12 +49,14 @@ export function QuotationForm({ quotation, suppliers, items }: QuotationFormProp
       quantity: i.quantity,
       unitPrice: i.unitPrice,
       unit: i.unit,
+      weightKg: i.weightKg || undefined,
       leadTimeDays: i.leadTimeDays || undefined,
       notes: i.notes || undefined,
     })) || []
   )
 
   const totalAmount = lineItems.reduce((sum, li) => sum + li.quantity * li.unitPrice, 0)
+  const totalWeightKg = lineItems.reduce((sum, li) => sum + (li.weightKg || 0) * li.quantity, 0)
 
   function addLineItem() {
     setLineItems([...lineItems, { description: "", partNumber: "", quantity: 1, unitPrice: 0, unit: "unit" }])
@@ -118,6 +121,15 @@ export function QuotationForm({ quotation, suppliers, items }: QuotationFormProp
   async function handleDeleteAttachment(id: string) {
     const res = await fetch(`/api/attachments/${id}`, { method: "DELETE" })
     if (res.ok) setAttachments((prev) => prev.filter((a) => a.id !== id))
+  }
+
+  async function handleDelete() {
+    if (!quotation || !confirm(`Delete quotation ${quotation.quotationNumber}? This cannot be undone.`)) return
+    const res = await fetch(`/api/quotations/${quotation.id}`, { method: "DELETE" })
+    if (res.ok) {
+      router.push("/quotations")
+      router.refresh()
+    }
   }
 
   return (
@@ -206,9 +218,10 @@ export function QuotationForm({ quotation, suppliers, items }: QuotationFormProp
                     <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-44">Catalog Item</th>
                     <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium">Description</th>
                     <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-28">Part No.</th>
-                    <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-20">Qty</th>
-                    <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-16">Unit</th>
-                    <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-28">Unit Price</th>
+                    <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-16">Qty</th>
+                    <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-14">Unit</th>
+                    <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-24">Unit Price</th>
+                    <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-20">Weight/unit (kg)</th>
                     <th className="text-left px-3 py-2 text-[11px] uppercase tracking-[0.05em] text-[#737373] font-medium w-28">Total</th>
                     <th className="w-8"></th>
                   </tr>
@@ -244,6 +257,11 @@ export function QuotationForm({ quotation, suppliers, items }: QuotationFormProp
                           onChange={(e) => updateLineItem(index, "unitPrice", parseFloat(e.target.value) || 0)}
                           className={cellInp} />
                       </td>
+                      <td className="px-3 py-2">
+                        <input type="number" value={li.weightKg ?? ""} min={0} step={0.001}
+                          onChange={(e) => updateLineItem(index, "weightKg", parseFloat(e.target.value) || 0)}
+                          className={cellInp} placeholder="0.000" />
+                      </td>
                       <td className="px-3 py-2 text-sm font-medium text-[#171717] whitespace-nowrap">
                         {formatCurrency(li.quantity * li.unitPrice, currency)}
                       </td>
@@ -258,7 +276,15 @@ export function QuotationForm({ quotation, suppliers, items }: QuotationFormProp
                 </tbody>
                 <tfoot>
                   <tr className="border-t border-[#E5E5E5] bg-[#FAFAFA]">
-                    <td colSpan={6} className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-[0.05em] text-[#737373]">Total</td>
+                    <td colSpan={5} className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-[0.05em] text-[#737373]">Total Weight</td>
+                    <td colSpan={2} className="px-3 py-3 text-xs font-semibold text-[#525252]">
+                      {totalWeightKg > 0 ? `${totalWeightKg.toFixed(3)} kg` : "—"}
+                    </td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr className="bg-[#FAFAFA]">
+                    <td colSpan={7} className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-[0.05em] text-[#737373]">Total</td>
                     <td className="px-3 py-3 text-sm font-extrabold text-[#171717]">{formatCurrency(totalAmount, currency)}</td>
                     <td></td>
                   </tr>
@@ -277,6 +303,12 @@ export function QuotationForm({ quotation, suppliers, items }: QuotationFormProp
             className="h-9 px-5 border border-[#E5E5E5] text-sm font-medium text-[#525252] rounded-md hover:bg-[#FAFAFA] transition-colors">
             Cancel
           </button>
+          {quotation && (
+            <button type="button" onClick={handleDelete}
+              className="h-9 px-5 ml-auto border border-[#FCA5A5] text-sm font-medium text-[#DC2626] rounded-md hover:bg-[#FEF2F2] transition-colors">
+              Delete Quotation
+            </button>
+          )}
         </div>
       </form>
 

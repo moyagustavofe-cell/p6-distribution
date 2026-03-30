@@ -95,6 +95,7 @@ model QuotationItem {
   unitPrice    Float
   totalPrice   Float
   unit         String    @default("unit")
+  weightKg     Float?
   leadTimeDays Int?
   notes        String?
   createdAt    DateTime  @default(now())
@@ -145,12 +146,14 @@ model SalesQuote {
   paymentTerms String?
   deliveryTime String?
   incoterms    String?
-  notes        String?
-  totalAmount  Float?
-  items        SalesQuoteItem[]
-  attachments  Attachment[]
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  notes           String?
+  totalAmount     Float?
+  discountPercent Float?
+  vatPercent      Float?
+  items           SalesQuoteItem[]
+  attachments     Attachment[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
 
 enum SalesQuoteStatus {
