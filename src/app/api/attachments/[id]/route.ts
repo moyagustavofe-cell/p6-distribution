@@ -7,14 +7,22 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     where: { id },
     select: { data: true, mimeType: true, originalName: true },
   })
-  if (!attachment || !attachment.data) {
+
+  if (!attachment) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
+  if (!attachment.data) {
+    return NextResponse.json(
+      { error: "File data unavailable — please re-upload this attachment" },
+      { status: 410 },
+    )
+  }
 
-  return new Response(attachment.data, {
+  const uint8 = new Uint8Array(attachment.data)
+  return new Response(uint8, {
     headers: {
-      "Content-Type": attachment.mimeType,
-      "Content-Disposition": `inline; filename="${encodeURIComponent(attachment.originalName)}"`,
+      "Content-Type": attachment.mimeType || "application/octet-stream",
+      "Content-Disposition": `attachment; filename="${encodeURIComponent(attachment.originalName)}"`,
       "Cache-Control": "private, max-age=3600",
     },
   })
