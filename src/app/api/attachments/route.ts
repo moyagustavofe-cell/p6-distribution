@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { saveFile } from "@/lib/upload"
 
 export async function POST(request: Request) {
   const formData = await request.formData()
@@ -12,15 +11,30 @@ export async function POST(request: Request) {
 
   if (!file) return NextResponse.json({ error: "No file" }, { status: 400 })
 
-  const saved = await saveFile(file)
+  const buffer = Buffer.from(await file.arrayBuffer())
+
   const attachment = await prisma.attachment.create({
     data: {
-      ...saved,
+      originalName: file.name,
+      mimeType: file.type || "application/octet-stream",
+      size: file.size,
+      data: buffer,
       itemId: itemId || null,
       quotationId: quotationId || null,
       salesQuoteId: salesQuoteId || null,
       customerId: customerId || null,
     },
   })
-  return NextResponse.json(attachment, { status: 201 })
+
+  // Return metadata only (no binary data in response)
+  return NextResponse.json(
+    {
+      id: attachment.id,
+      originalName: attachment.originalName,
+      mimeType: attachment.mimeType,
+      size: attachment.size,
+      createdAt: attachment.createdAt,
+    },
+    { status: 201 },
+  )
 }

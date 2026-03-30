@@ -22,7 +22,10 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
     where: { id },
     include: {
       salesQuotes: { orderBy: { createdAt: "desc" } },
-      attachments: { orderBy: { createdAt: "desc" } },
+      attachments: {
+        orderBy: { createdAt: "desc" },
+        select: { id: true, originalName: true, mimeType: true, size: true, createdAt: true },
+      },
     },
   })
   if (!customer) notFound()

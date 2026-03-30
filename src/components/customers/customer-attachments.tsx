@@ -9,7 +9,6 @@ interface Attachment {
   originalName: string
   mimeType: string
   size: number
-  url: string
   createdAt: string | Date
 }
 
@@ -127,7 +126,7 @@ export function CustomerAttachments({
                 <FileIcon mimeType={att.mimeType} />
                 <div className="flex-1 min-w-0">
                   <a
-                    href={att.url}
+                    href={`/api/attachments/${att.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-[#171717] hover:underline truncate block"
