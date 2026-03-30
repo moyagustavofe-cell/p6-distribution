@@ -24,7 +24,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
       salesQuotes: { orderBy: { createdAt: "desc" } },
       attachments: {
         orderBy: { createdAt: "desc" },
-        select: { id: true, originalName: true, mimeType: true, size: true, createdAt: true },
+        select: { id: true, originalName: true, mimeType: true, size: true, createdAt: true, data: true },
       },
     },
   })
@@ -36,7 +36,13 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
       <div className="p-6 space-y-6">
         <CustomerForm customer={customer} />
 
-        <CustomerAttachments customerId={customer.id} attachments={customer.attachments} />
+        <CustomerAttachments
+          customerId={customer.id}
+          attachments={customer.attachments.map(({ data, ...rest }) => ({
+            ...rest,
+            hasData: data !== null,
+          }))}
+        />
 
         {/* Sales Quotes */}
         <div className="bg-white border border-[#E5E5E5] rounded-lg shadow-[0_1px_3px_rgba(0,0,0,0.06)]">

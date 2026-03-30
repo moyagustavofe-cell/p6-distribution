@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Paperclip, Upload, Trash2, FileText, FileImage, File } from "lucide-react"
+import { Paperclip, Upload, Trash2, FileText, FileImage, File, AlertTriangle } from "lucide-react"
 
 interface Attachment {
   id: string
@@ -10,6 +10,7 @@ interface Attachment {
   mimeType: string
   size: number
   createdAt: string | Date
+  hasData: boolean
 }
 
 function formatBytes(bytes: number) {
@@ -51,7 +52,7 @@ export function CustomerAttachments({
         const res = await fetch("/api/attachments", { method: "POST", body: fd })
         if (!res.ok) throw new Error("Upload failed")
         const att = await res.json()
-        setAttachments((prev) => [att, ...prev])
+        setAttachments((prev) => [{ ...att, hasData: true }, ...prev])
       }
     } catch {
       setError("Error al subir el archivo. Intentá de nuevo.")
@@ -103,7 +104,6 @@ export function CustomerAttachments({
         />
       </div>
 
-      {/* Drop zone shown when no files */}
       {attachments.length === 0 ? (
         <div
           onDrop={handleDrop}
@@ -116,31 +116,46 @@ export function CustomerAttachments({
           <p className="text-xs text-[#A3A3A3] mt-1">Certificados, contratos, documentos, etc.</p>
         </div>
       ) : (
-        <div
-          onDrop={handleDrop}
-          onDragOver={(e) => e.preventDefault()}
-        >
+        <div onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}>
           <ul className="divide-y divide-[#F5F5F5]">
             {attachments.map((att) => (
-              <li key={att.id} className="flex items-center gap-3 px-5 py-3 hover:bg-[#FAFAFA] transition-colors">
-                <FileIcon mimeType={att.mimeType} />
+              <li
+                key={att.id}
+                className={`flex items-center gap-3 px-5 py-3 transition-colors ${
+                  att.hasData ? "hover:bg-[#FAFAFA]" : "bg-[#FFFBEB]"
+                }`}
+              >
+                {att.hasData ? (
+                  <FileIcon mimeType={att.mimeType} />
+                ) : (
+                  <AlertTriangle size={16} className="text-[#F59E0B] shrink-0" />
+                )}
+
                 <div className="flex-1 min-w-0">
-                  <a
-                    href={`/api/attachments/${att.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-[#171717] hover:underline truncate block"
-                  >
-                    {att.originalName}
-                  </a>
+                  {att.hasData ? (
+                    <a
+                      href={`/api/attachments/${att.id}`}
+                      download={att.originalName}
+                      className="text-sm text-[#171717] hover:underline truncate block"
+                    >
+                      {att.originalName}
+                    </a>
+                  ) : (
+                    <span className="text-sm text-[#A3A3A3] line-through truncate block">
+                      {att.originalName}
+                    </span>
+                  )}
                   <span className="text-xs text-[#A3A3A3]">
-                    {formatBytes(att.size)} · {new Date(att.createdAt).toLocaleDateString("es-AR")}
+                    {att.hasData
+                      ? `${formatBytes(att.size)} · ${new Date(att.createdAt).toLocaleDateString("es-AR")}`
+                      : "Archivo perdido — eliminá y volvé a subir"}
                   </span>
                 </div>
+
                 <button
                   onClick={() => handleDelete(att.id)}
                   disabled={deletingId === att.id}
-                  className="p-1 text-[#D4D4D4] hover:text-[#DC2626] transition-colors disabled:opacity-50"
+                  className="p-1 text-[#D4D4D4] hover:text-[#DC2626] transition-colors disabled:opacity-50 shrink-0"
                   title="Eliminar"
                 >
                   <Trash2 size={14} />
