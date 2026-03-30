@@ -3,6 +3,20 @@
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 
+async function fetchLogoDataUrl(): Promise<string | null> {
+  try {
+    const res = await fetch("/p6-logo.png")
+    const blob = await res.blob()
+    return await new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result as string)
+      reader.readAsDataURL(blob)
+    })
+  } catch {
+    return null
+  }
+}
+
 interface QuoteItem {
   description: string
   partNumber: string | null
@@ -57,29 +71,15 @@ export async function generateQuotePdf(quote: QuoteData) {
 
   const pageWidth = doc.internal.pageSize.getWidth()
   const margin = 15
-  const contentWidth = pageWidth - margin * 2
-
-  // Load logo
-  let logoDataUrl: string | null = null
-  try {
-    const res = await fetch("/p6-logo.png")
-    const blob = await res.blob()
-    logoDataUrl = await new Promise<string>((resolve) => {
-      const reader = new FileReader()
-      reader.onloadend = () => resolve(reader.result as string)
-      reader.readAsDataURL(blob)
-    })
-  } catch {
-    // logo not available, continue without it
-  }
 
   // ── Header ──────────────────────────────────────────────────────
   const headerY = margin
 
-  // Logo (top right)
+  // Logo (top right) — real P6 logo PNG (116×163 aspect ratio)
+  const logoW = 16  // mm
+  const logoH = logoW * (163 / 116)
+  const logoDataUrl = await fetchLogoDataUrl()
   if (logoDataUrl) {
-    const logoH = 18
-    const logoW = (116 / 148) * logoH
     doc.addImage(logoDataUrl, "PNG", pageWidth - margin - logoW, headerY, logoW, logoH)
   }
 
@@ -87,22 +87,22 @@ export async function generateQuotePdf(quote: QuoteData) {
   doc.setFont("helvetica", "bold")
   doc.setFontSize(16)
   doc.setTextColor(17, 17, 17)
-  doc.text("P6 Distribution", margin, headerY + 7)
+  doc.text("P6 Solutions", margin, headerY + 7)
 
   // Divider
   doc.setDrawColor(17, 17, 17)
   doc.setLineWidth(0.6)
-  doc.line(margin, headerY + 21, pageWidth - margin, headerY + 21)
+  doc.line(margin, headerY + 22, pageWidth - margin, headerY + 22)
 
   // ── Quote title + meta (left) ────────────────────────────────────
-  const metaY = headerY + 28
+  const metaY = headerY + 29
   doc.setFont("helvetica", "bold")
   doc.setFontSize(13)
+  doc.setTextColor(17, 17, 17)
   doc.text(`COTIZACIÓN ${quote.quoteNumber}`, margin, metaY)
 
   doc.setFont("helvetica", "normal")
   doc.setFontSize(9)
-  doc.setTextColor(80, 80, 80)
 
   const metaLines: [string, string][] = [
     ["Fecha de emisión", fmtDate(quote.date)],
@@ -113,11 +113,11 @@ export async function generateQuotePdf(quote: QuoteData) {
   metaLines.forEach(([label, value], i) => {
     const y = metaY + 7 + i * 5.5
     doc.setTextColor(120, 120, 120)
+    doc.setFont("helvetica", "normal")
     doc.text(label, margin, y)
     doc.setTextColor(17, 17, 17)
     doc.setFont("helvetica", "bold")
     doc.text(value, margin + 36, y)
-    doc.setFont("helvetica", "normal")
   })
 
   // ── Recipient (right) ───────────────────────────────────────────
@@ -151,7 +151,8 @@ export async function generateQuotePdf(quote: QuoteData) {
     recipOffset += 5
   }
   if (quote.customer.address) {
-    doc.text(quote.customer.address, recipX, recipY + recipOffset)
+    const addrLines = doc.splitTextToSize(quote.customer.address, pageWidth / 2 - margin - 5)
+    doc.text(addrLines, recipX, recipY + recipOffset)
   }
 
   // ── Items table ─────────────────────────────────────────────────
@@ -201,7 +202,7 @@ export async function generateQuotePdf(quote: QuoteData) {
   const total = netSubtotal + vatAmt
 
   const condY = finalY + 8
-  const totalsX = pageWidth - margin - 70
+  const totalsX = pageWidth - margin - 72
 
   // Conditions (left side)
   doc.setFont("helvetica", "normal")
@@ -247,18 +248,12 @@ export async function generateQuotePdf(quote: QuoteData) {
   const valueX = pageWidth - margin
 
   function totRow(label: string, value: string, bold = false, big = false) {
-    if (bold) {
-      doc.setFont("helvetica", "bold")
-      if (big) doc.setFontSize(10)
-      else doc.setFontSize(8)
-    } else {
-      doc.setFont("helvetica", "normal")
-      doc.setFontSize(8)
-    }
+    doc.setFont("helvetica", bold ? "bold" : "normal")
+    doc.setFontSize(big ? 10 : 8)
     doc.setTextColor(bold ? 17 : 80, bold ? 17 : 80, bold ? 17 : 80)
     doc.text(label, labelX, totY)
     doc.text(value, valueX, totY, { align: "right" })
-    totY += bold && big ? 7 : 5.5
+    totY += big ? 0 : 5.5  // don't advance after last row (we advance manually)
   }
 
   totRow("Subtotal", fmt(subtotal, quote.currency))
@@ -270,14 +265,21 @@ export async function generateQuotePdf(quote: QuoteData) {
     totRow(`IVA (${vatPct}%)`, fmt(vatAmt, quote.currency))
   }
 
-  // Divider above total
+  // Divider — drawn with clear separation above and below
+  totY += 3  // gap before line
   doc.setDrawColor(17, 17, 17)
-  doc.setLineWidth(0.4)
-  doc.line(labelX, totY - 1, valueX, totY - 1)
-  totY += 1
-  totRow("TOTAL", fmt(total, quote.currency), true, true)
+  doc.setLineWidth(0.5)
+  doc.line(labelX, totY, valueX, totY)
+  totY += 5  // gap between line and TOTAL text
 
-  // ── Page numbers (two-pass: know total before writing) ──────────
+  // TOTAL row (big, bold)
+  doc.setFont("helvetica", "bold")
+  doc.setFontSize(11)
+  doc.setTextColor(17, 17, 17)
+  doc.text("TOTAL", labelX, totY)
+  doc.text(fmt(total, quote.currency), valueX, totY, { align: "right" })
+
+  // ── Page numbers (two-pass) ──────────────────────────────────────
   const totalPages = doc.getNumberOfPages()
   const pageH = doc.internal.pageSize.getHeight()
   for (let p = 1; p <= totalPages; p++) {
@@ -287,8 +289,6 @@ export async function generateQuotePdf(quote: QuoteData) {
     doc.setTextColor(160, 160, 160)
     doc.text(`Página ${p} de ${totalPages}`, pageWidth / 2, pageH - 8, { align: "center" })
   }
-  // Restore to last page so totals are written there
-  doc.setPage(totalPages)
 
   doc.save(`${quote.quoteNumber}.pdf`)
 }
