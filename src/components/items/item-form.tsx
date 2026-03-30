@@ -178,7 +178,7 @@ export function ItemForm({ item, categories }: ItemFormProps) {
                 <div className="mt-4 space-y-2">
                   {attachments.map((att) => (
                     <div key={att.id} className="flex items-center justify-between rounded-lg bg-[#F5F5F5] px-3 py-2">
-                      <a href={att.url} target="_blank" rel="noopener noreferrer"
+                      <a href={`/api/attachments/${att.id}`} download={att.originalName} target="_blank" rel="noopener noreferrer"
                         className="text-sm text-[#171717] hover:underline truncate max-w-[160px]">
                         {att.originalName}
                       </a>

@@ -330,7 +330,7 @@ export function QuotationForm({ quotation, suppliers, items }: QuotationFormProp
               <div className="mt-4 flex flex-wrap gap-2">
                 {attachments.map((att) => (
                   <div key={att.id} className="flex items-center gap-2 rounded-lg bg-[#F5F5F5] px-3 py-2">
-                    <a href={att.url} target="_blank" rel="noopener noreferrer"
+                    <a href={`/api/attachments/${att.id}`} download={att.originalName} target="_blank" rel="noopener noreferrer"
                       className="text-sm text-[#171717] hover:underline">
                       {att.originalName}
                     </a>
