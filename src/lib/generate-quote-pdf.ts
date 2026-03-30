@@ -75,24 +75,41 @@ export async function generateQuotePdf(quote: QuoteData) {
   // ── Header ──────────────────────────────────────────────────────
   const headerY = margin
 
-  // Logo (top right) — real P6 logo PNG (116×163 aspect ratio), half size
-  const logoW = 8   // mm
-  const logoH = logoW * (163 / 116)
   const logoDataUrl = await fetchLogoDataUrl()
 
-  // Divider position
-  const dividerY = headerY + 22
+  // ── Sender block (above divider, left) ──────────────────────────
+  // "DE" label
+  doc.setFontSize(8)
+  doc.setFont("helvetica", "normal")
+  doc.setTextColor(120, 120, 120)
+  doc.text("DE", margin, headerY + 5)
 
-  if (logoDataUrl) {
-    // Place logo so its bottom aligns with the divider line
-    doc.addImage(logoDataUrl, "PNG", pageWidth - margin - logoW, dividerY - logoH, logoW, logoH)
-  }
-
-  // Company name (top left) — baseline 7mm above divider (same gap as COTIZACIÓN below)
+  // "P6 Solutions" bold — this line also anchors the logo
+  const senderNameY = headerY + 11
   doc.setFont("helvetica", "bold")
-  doc.setFontSize(16)
+  doc.setFontSize(11)
   doc.setTextColor(17, 17, 17)
-  doc.text("P6 Solutions", margin, dividerY - 7)
+  doc.text("P6 Solutions", margin, senderNameY)
+
+  // Remaining sender lines
+  doc.setFont("helvetica", "normal")
+  doc.setFontSize(9)
+  doc.setTextColor(60, 60, 60)
+  const senderLines = ["Tufud SRL", "CUIT: 33718537679", "gustavo@p6solutions.com"]
+  senderLines.forEach((line, i) => {
+    doc.text(line, margin, senderNameY + 5 + i * 5)
+  })
+
+  // Divider — 6mm below last sender line
+  const dividerY = senderNameY + 5 + senderLines.length * 5 + 6
+
+  // Logo (top right) aligned with "P6 Solutions" line
+  const logoW = 8   // mm
+  const logoH = logoW * (163 / 116)
+  if (logoDataUrl) {
+    // top of logo = cap top of "P6 Solutions" text (~3mm above baseline)
+    doc.addImage(logoDataUrl, "PNG", pageWidth - margin - logoW, senderNameY - 3, logoW, logoH)
+  }
 
   // Divider
   doc.setDrawColor(17, 17, 17)
