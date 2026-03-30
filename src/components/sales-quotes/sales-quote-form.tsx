@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import type { SalesQuote, SalesQuoteItem, Customer, Item, Attachment } from "@prisma/client"
 import { formatCurrency } from "@/lib/utils"
+import { generateQuotePdf } from "@/lib/generate-quote-pdf"
 import { Plus, Trash2 } from "lucide-react"
 
 type SalesQuoteWithRelations = SalesQuote & {
@@ -124,6 +125,31 @@ export function SalesQuoteForm({ quote, customers, items, defaultCustomerId }: S
       router.push("/sales-quotes")
       router.refresh()
     }
+  }
+
+  async function handleExportPdf() {
+    if (!quote) return
+    await generateQuotePdf({
+      quoteNumber: quote.quoteNumber,
+      date: quote.date,
+      validUntil: quote.validUntil,
+      currency: quote.currency,
+      paymentTerms: quote.paymentTerms,
+      deliveryTime: quote.deliveryTime,
+      incoterms: quote.incoterms,
+      notes: quote.notes,
+      discountPercent: quote.discountPercent,
+      vatPercent: quote.vatPercent,
+      customer: quote.customer,
+      items: quote.items.map((i) => ({
+        description: i.description,
+        partNumber: i.partNumber,
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+        totalPrice: i.totalPrice,
+        unit: i.unit,
+      })),
+    })
   }
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -369,14 +395,10 @@ export function SalesQuoteForm({ quote, customers, items, defaultCustomerId }: S
           </button>
           {quote && (
             <>
-              <a
-                href={`/sales-quotes/${quote.id}/print`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="h-9 px-5 border border-[#E5E5E5] text-sm font-medium text-[#525252] rounded-md hover:bg-[#FAFAFA] transition-colors flex items-center"
-              >
+              <button type="button" onClick={handleExportPdf}
+                className="h-9 px-5 border border-[#E5E5E5] text-sm font-medium text-[#525252] rounded-md hover:bg-[#FAFAFA] transition-colors">
                 Export PDF
-              </a>
+              </button>
               <button type="button" onClick={handleDelete}
                 className="ml-auto h-9 px-5 border border-[#FCA5A5] text-sm font-medium text-[#DC2626] rounded-md hover:bg-[#FEF2F2] transition-colors">
                 Delete
