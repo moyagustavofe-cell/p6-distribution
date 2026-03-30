@@ -75,27 +75,32 @@ export async function generateQuotePdf(quote: QuoteData) {
   // ── Header ──────────────────────────────────────────────────────
   const headerY = margin
 
-  // Logo (top right) — real P6 logo PNG (116×163 aspect ratio)
-  const logoW = 16  // mm
+  // Logo (top right) — real P6 logo PNG (116×163 aspect ratio), half size
+  const logoW = 8   // mm
   const logoH = logoW * (163 / 116)
   const logoDataUrl = await fetchLogoDataUrl()
+
+  // Divider position
+  const dividerY = headerY + 22
+
   if (logoDataUrl) {
-    doc.addImage(logoDataUrl, "PNG", pageWidth - margin - logoW, headerY, logoW, logoH)
+    // Place logo so its bottom aligns with the divider line
+    doc.addImage(logoDataUrl, "PNG", pageWidth - margin - logoW, dividerY - logoH, logoW, logoH)
   }
 
-  // Company name (top left)
+  // Company name (top left) — baseline 7mm above divider (same gap as COTIZACIÓN below)
   doc.setFont("helvetica", "bold")
   doc.setFontSize(16)
   doc.setTextColor(17, 17, 17)
-  doc.text("P6 Solutions", margin, headerY + 7)
+  doc.text("P6 Solutions", margin, dividerY - 7)
 
   // Divider
   doc.setDrawColor(17, 17, 17)
   doc.setLineWidth(0.6)
-  doc.line(margin, headerY + 22, pageWidth - margin, headerY + 22)
+  doc.line(margin, dividerY, pageWidth - margin, dividerY)
 
   // ── Quote title + meta (left) ────────────────────────────────────
-  const metaY = headerY + 29
+  const metaY = dividerY + 7
   doc.setFont("helvetica", "bold")
   doc.setFontSize(13)
   doc.setTextColor(17, 17, 17)
@@ -122,7 +127,7 @@ export async function generateQuotePdf(quote: QuoteData) {
 
   // ── Recipient (right) ───────────────────────────────────────────
   const recipX = pageWidth / 2 + 5
-  let recipY = metaY
+  const recipY = metaY
 
   doc.setFontSize(8)
   doc.setFont("helvetica", "normal")
