@@ -25,7 +25,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       date: data.date ? new Date(data.date) : undefined,
       validUntil: data.validUntil ? new Date(data.validUntil) : null,
       items: {
-        create: items.map((item: { itemId?: string; description: string; partNumber?: string; quantity: number; unitPrice: number; unit: string; leadTimeDays?: number; notes?: string }) => ({
+        create: items.map((item: { itemId?: string; description: string; partNumber?: string; quantity: number; unitPrice: number; unit: string; weightKg?: number; leadTimeDays?: number; notes?: string }) => ({
           itemId: item.itemId || null,
           description: item.description,
           partNumber: item.partNumber || null,
@@ -33,6 +33,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
           unitPrice: item.unitPrice,
           totalPrice: item.quantity * item.unitPrice,
           unit: item.unit,
+          weightKg: item.weightKg || null,
           leadTimeDays: item.leadTimeDays || null,
           notes: item.notes || null,
         })),

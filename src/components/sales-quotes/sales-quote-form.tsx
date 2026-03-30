@@ -40,6 +40,8 @@ export function SalesQuoteForm({ quote, customers, items, defaultCustomerId }: S
   const [loading, setLoading] = useState(false)
   const [currency, setCurrency] = useState(quote?.currency || "USD")
   const [attachments, setAttachments] = useState<Attachment[]>(quote?.attachments || [])
+  const [discountPercent, setDiscountPercent] = useState<number>(quote?.discountPercent ?? 0)
+  const [vatPercent, setVatPercent] = useState<number>(quote?.vatPercent ?? 0)
   const [lineItems, setLineItems] = useState<LineItem[]>(
     quote?.items.map((i) => ({
       id: i.id,
@@ -54,7 +56,11 @@ export function SalesQuoteForm({ quote, customers, items, defaultCustomerId }: S
     })) || []
   )
 
-  const totalAmount = lineItems.reduce((sum, li) => sum + li.quantity * li.unitPrice, 0)
+  const subtotal = lineItems.reduce((sum, li) => sum + li.quantity * li.unitPrice, 0)
+  const discountAmount = subtotal * (discountPercent / 100)
+  const netSubtotal = subtotal - discountAmount
+  const vatAmount = netSubtotal * (vatPercent / 100)
+  const totalAmount = netSubtotal + vatAmount
 
   function addLineItem() {
     setLineItems([...lineItems, { description: "", partNumber: "", quantity: 1, unitCost: 0, unitPrice: 0, unit: "unit" }])
@@ -95,6 +101,8 @@ export function SalesQuoteForm({ quote, customers, items, defaultCustomerId }: S
       deliveryTime: formData.get("deliveryTime") as string || null,
       incoterms: formData.get("incoterms") as string || null,
       notes: formData.get("notes") as string || null,
+      discountPercent: discountPercent || null,
+      vatPercent: vatPercent || null,
       totalAmount,
       items: lineItems,
     }
@@ -193,7 +201,7 @@ export function SalesQuoteForm({ quote, customers, items, defaultCustomerId }: S
             </div>
           </div>
           <div>
-            <label className={lbl}>Notes</label>
+            <label className={lbl}>Notes / Observations</label>
             <textarea name="notes" defaultValue={quote?.notes || ""} rows={2}
               className="w-full px-3 py-2 border border-[#E5E5E5] rounded-lg text-sm focus:outline-none focus:border-black focus:border-[1.5px] bg-white resize-none" />
           </div>
@@ -282,16 +290,72 @@ export function SalesQuoteForm({ quote, customers, items, defaultCustomerId }: S
                     </tr>
                   ))}
                 </tbody>
-                <tfoot>
-                  <tr className="border-t border-[#E5E5E5] bg-[#FAFAFA]">
-                    <td colSpan={8} className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-[0.05em] text-[#737373]">Total</td>
-                    <td className="px-3 py-3 text-sm font-extrabold text-[#171717]">{formatCurrency(totalAmount, currency)}</td>
-                    <td></td>
-                  </tr>
-                </tfoot>
               </table>
             </div>
           )}
+
+          {/* Totals panel */}
+          <div className="border-t border-[#E5E5E5] bg-[#FAFAFA] px-5 py-4">
+            <div className="ml-auto max-w-xs space-y-2">
+              <div className="flex justify-between text-sm text-[#525252]">
+                <span>Subtotal</span>
+                <span className="font-medium">{formatCurrency(subtotal, currency)}</span>
+              </div>
+
+              {/* Discount */}
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2 text-sm text-[#525252]">
+                  <span className="whitespace-nowrap">Discount (bonif.)</span>
+                  <div className="flex items-center">
+                    <input
+                      type="number"
+                      value={discountPercent}
+                      min={0}
+                      max={100}
+                      step={0.1}
+                      onChange={(e) => setDiscountPercent(parseFloat(e.target.value) || 0)}
+                      className="w-16 h-6 px-2 border border-[#E5E5E5] rounded text-xs focus:outline-none focus:border-black bg-white text-right"
+                    />
+                    <span className="ml-1 text-xs text-[#737373]">%</span>
+                  </div>
+                </div>
+                <span className="text-sm font-medium text-[#525252]">
+                  {discountPercent > 0 ? `− ${formatCurrency(discountAmount, currency)}` : "—"}
+                </span>
+              </div>
+
+              {discountPercent > 0 && (
+                <div className="flex justify-between text-sm text-[#525252]">
+                  <span>Net Subtotal</span>
+                  <span className="font-medium">{formatCurrency(netSubtotal, currency)}</span>
+                </div>
+              )}
+
+              {/* IVA */}
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2 text-sm text-[#525252]">
+                  <span>IVA</span>
+                  <select
+                    value={vatPercent}
+                    onChange={(e) => setVatPercent(parseFloat(e.target.value))}
+                    className="h-6 px-2 border border-[#E5E5E5] rounded text-xs focus:outline-none focus:border-black bg-white"
+                  >
+                    <option value={0}>None</option>
+                    <option value={10.5}>10.5%</option>
+                    <option value={21}>21%</option>
+                  </select>
+                </div>
+                <span className="text-sm font-medium text-[#525252]">
+                  {vatPercent > 0 ? formatCurrency(vatAmount, currency) : "—"}
+                </span>
+              </div>
+
+              <div className="flex justify-between border-t border-[#E5E5E5] pt-2">
+                <span className="text-sm font-semibold text-[#171717]">Total</span>
+                <span className="text-sm font-extrabold text-[#171717]">{formatCurrency(totalAmount, currency)}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="flex gap-3">
@@ -304,10 +368,20 @@ export function SalesQuoteForm({ quote, customers, items, defaultCustomerId }: S
             Cancel
           </button>
           {quote && (
-            <button type="button" onClick={handleDelete}
-              className="ml-auto h-9 px-5 border border-[#FCA5A5] text-sm font-medium text-[#DC2626] rounded-md hover:bg-[#FEF2F2] transition-colors">
-              Delete
-            </button>
+            <>
+              <a
+                href={`/sales-quotes/${quote.id}/print`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-9 px-5 border border-[#E5E5E5] text-sm font-medium text-[#525252] rounded-md hover:bg-[#FAFAFA] transition-colors flex items-center"
+              >
+                Export PDF
+              </a>
+              <button type="button" onClick={handleDelete}
+                className="ml-auto h-9 px-5 border border-[#FCA5A5] text-sm font-medium text-[#DC2626] rounded-md hover:bg-[#FEF2F2] transition-colors">
+                Delete
+              </button>
+            </>
           )}
         </div>
       </form>
