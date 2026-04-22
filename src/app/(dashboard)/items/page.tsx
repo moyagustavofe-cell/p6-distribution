@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic"
 import Link from "next/link"
 import { Header } from "@/components/layout/header"
 import { prisma } from "@/lib/prisma"
-import { Plus } from "lucide-react"
+import { Plus, Upload, Download } from "lucide-react"
 
 export default async function ItemsPage() {
   const items = await prisma.item.findMany({
@@ -17,11 +17,28 @@ export default async function ItemsPage() {
         title="Items"
         subtitle="Product catalog for oil & gas supplies"
         actions={
-          <Link href="/items/new"
-            className="flex items-center gap-2 h-9 px-4 bg-black text-white text-sm font-medium rounded-md hover:bg-[#171717] transition-colors">
-            <Plus size={14} />
-            New Item
-          </Link>
+          <div className="flex items-center gap-2">
+            <a
+              href="/api/items/template"
+              download
+              className="flex items-center gap-2 h-9 px-4 border border-[#E5E5E5] text-sm font-medium text-[#525252] rounded-md hover:bg-[#FAFAFA] transition-colors"
+            >
+              <Download size={14} />
+              Plantilla Excel
+            </a>
+            <Link
+              href="/items/import"
+              className="flex items-center gap-2 h-9 px-4 border border-[#E5E5E5] text-sm font-medium text-[#525252] rounded-md hover:bg-[#FAFAFA] transition-colors"
+            >
+              <Upload size={14} />
+              Import Excel
+            </Link>
+            <Link href="/items/new"
+              className="flex items-center gap-2 h-9 px-4 bg-black text-white text-sm font-medium rounded-md hover:bg-[#171717] transition-colors">
+              <Plus size={14} />
+              New Item
+            </Link>
+          </div>
         }
       />
       <div className="p-8">
