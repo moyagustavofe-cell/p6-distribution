@@ -48,6 +48,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   return NextResponse.json(quote)
 }
 
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const data = await request.json()
+  const quote = await prisma.salesQuote.update({ where: { id }, data })
+  return NextResponse.json(quote)
+}
+
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   await prisma.salesQuote.delete({ where: { id } })

@@ -6,14 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { Plus } from "lucide-react"
 import { formatDate, formatCurrency } from "@/lib/utils"
 import { DuplicateButton } from "@/components/sales-quotes/duplicate-button"
-
-const STATUS_COLORS: Record<string, string> = {
-  DRAFT:    "#737373",
-  SENT:     "#2563EB",
-  ACCEPTED: "#16A34A",
-  REJECTED: "#DC2626",
-  EXPIRED:  "#F97316",
-}
+import { StatusSelect } from "@/components/sales-quotes/status-select"
 
 export default async function SalesQuotesPage() {
   const quotes = await prisma.salesQuote.findMany({
@@ -53,7 +46,6 @@ export default async function SalesQuotesPage() {
               </thead>
               <tbody>
                 {quotes.map((q) => {
-                  const color = STATUS_COLORS[q.status] || "#737373"
                   return (
                     <tr key={q.id} className="border-b border-[#F5F5F5] last:border-0 hover:bg-[#FAFAFA] transition-colors cursor-pointer">
                       <td className="px-5 py-3 font-mono text-xs font-medium text-[#171717]">{q.quoteNumber}</td>
@@ -62,9 +54,7 @@ export default async function SalesQuotesPage() {
                       </td>
                       <td className="px-5 py-3 text-sm text-[#737373]">{formatDate(q.date)}</td>
                       <td className="px-5 py-3">
-                        <span className="text-xs px-2.5 py-1 rounded-full border" style={{ color, borderColor: color }}>
-                          {q.status}
-                        </span>
+                        <StatusSelect quoteId={q.id} current={q.status as "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED" | "EXPIRED"} />
                       </td>
                       <td className="px-5 py-3 text-sm text-[#737373]">{q._count.items}</td>
                       <td className="px-5 py-3 text-sm font-medium text-[#171717]">
