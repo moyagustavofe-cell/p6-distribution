@@ -172,13 +172,18 @@ export async function generateQuotePdf(quote: QuoteData) {
     doc.text(quote.customer.email, recipX, recipY + recipOffset)
     recipOffset += 5
   }
+  let addrLineCount = 0
   if (quote.customer.address) {
     const addrLines = doc.splitTextToSize(quote.customer.address, pageWidth / 2 - margin - 5)
     doc.text(addrLines, recipX, recipY + recipOffset)
+    addrLineCount = addrLines.length
   }
 
   // ── Items table ─────────────────────────────────────────────────
-  const tableY = metaY + 7 + metaLines.length * 5.5 + 8
+  // tableY must clear BOTH the left meta block AND the right recipient block
+  const leftBlockBottom  = metaY + 7 + metaLines.length * 5.5
+  const rightBlockBottom = recipY + recipOffset + addrLineCount * 5
+  const tableY = Math.max(leftBlockBottom, rightBlockBottom) + 8
 
   autoTable(doc, {
     startY: tableY,
