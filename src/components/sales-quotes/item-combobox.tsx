@@ -10,6 +10,7 @@ interface ItemComboboxProps {
   inputValue: string
   onSelect: (item: Item | null) => void
   onInputChange: (text: string) => void
+  placeholder?: string
 }
 
 function highlight(text: string, query: string) {
@@ -38,7 +39,7 @@ function scoreItem(item: Item, q: string): number {
   return -1
 }
 
-export function ItemCombobox({ items, value, inputValue, onSelect, onInputChange }: ItemComboboxProps) {
+export function ItemCombobox({ items, value, inputValue, onSelect, onInputChange, placeholder = "Buscar item..." }: ItemComboboxProps) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState(inputValue)
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
@@ -138,7 +139,7 @@ export function ItemCombobox({ items, value, inputValue, onSelect, onInputChange
           value={query}
           onChange={handleInput}
           onFocus={handleFocus}
-          placeholder="Buscar item..."
+          placeholder={placeholder}
           className="w-full h-7 pl-2 pr-6 border border-[#E5E5E5] rounded text-xs focus:outline-none focus:border-black bg-white"
         />
         {query && (

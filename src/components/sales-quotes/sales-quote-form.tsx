@@ -307,11 +307,18 @@ export function SalesQuoteForm({ quote, customers, items, defaultCustomerId }: S
                           inputValue={comboInputs[index] ?? ""}
                           onSelect={(item) => handleComboSelect(index, item)}
                           onInputChange={(text) => handleComboInput(index, text)}
+                          placeholder="Catálogo..."
                         />
                       </td>
                       <td className="px-3 py-2">
-                        <input value={li.description} onChange={(e) => updateLineItem(index, "description", e.target.value)}
-                          className={cellInp} placeholder="Description" required />
+                        <ItemCombobox
+                          items={items}
+                          value={li.itemId || ""}
+                          inputValue={li.description}
+                          onSelect={(item) => handleComboSelect(index, item)}
+                          onInputChange={(text) => updateLineItem(index, "description", text)}
+                          placeholder="Descripción..."
+                        />
                       </td>
                       <td className="px-3 py-2">
                         <input value={li.partNumber} onChange={(e) => updateLineItem(index, "partNumber", e.target.value)}
