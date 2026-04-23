@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/header"
 import { prisma } from "@/lib/prisma"
 import { Plus } from "lucide-react"
 import { formatDate, formatCurrency } from "@/lib/utils"
+import { DuplicateButton } from "@/components/sales-quotes/duplicate-button"
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT:    "#737373",
@@ -71,7 +72,10 @@ export default async function SalesQuotesPage() {
                       </td>
                       <td className="px-5 py-3 text-sm text-[#737373]">{q._count.attachments}</td>
                       <td className="px-5 py-3">
-                        <Link href={`/sales-quotes/${q.id}`} className="text-xs text-[#737373] hover:text-black transition-colors">Edit</Link>
+                        <div className="flex items-center gap-3">
+                          <Link href={`/sales-quotes/${q.id}`} className="text-xs text-[#737373] hover:text-black transition-colors">Edit</Link>
+                          <DuplicateButton quoteId={q.id} variant="row" />
+                        </div>
                       </td>
                     </tr>
                   )

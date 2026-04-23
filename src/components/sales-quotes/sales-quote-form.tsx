@@ -7,6 +7,7 @@ import { formatCurrency } from "@/lib/utils"
 import { generateQuotePdf } from "@/lib/generate-quote-pdf"
 import { Plus, Trash2 } from "lucide-react"
 import { ItemCombobox } from "./item-combobox"
+import { DuplicateButton } from "./duplicate-button"
 
 type SalesQuoteWithRelations = SalesQuote & {
   customer: Customer
@@ -441,6 +442,7 @@ export function SalesQuoteForm({ quote, customers, items, defaultCustomerId }: S
                 className="h-9 px-5 border border-[#E5E5E5] text-sm font-medium text-[#525252] rounded-md hover:bg-[#FAFAFA] transition-colors">
                 Export PDF
               </button>
+              <DuplicateButton quoteId={quote.id} variant="form" />
               <button type="button" onClick={handleDelete}
                 className="ml-auto h-9 px-5 border border-[#FCA5A5] text-sm font-medium text-[#DC2626] rounded-md hover:bg-[#FEF2F2] transition-colors">
                 Delete
