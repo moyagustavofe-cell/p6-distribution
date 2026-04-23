@@ -6,6 +6,7 @@ import type { SalesQuote, SalesQuoteItem, Customer, Item, Attachment } from "@pr
 import { formatCurrency } from "@/lib/utils"
 import { generateQuotePdf } from "@/lib/generate-quote-pdf"
 import { Plus, Trash2 } from "lucide-react"
+import { ItemCombobox } from "./item-combobox"
 
 type SalesQuoteWithRelations = SalesQuote & {
   customer: Customer
@@ -57,6 +58,11 @@ export function SalesQuoteForm({ quote, customers, items, defaultCustomerId }: S
     })) || []
   )
 
+  // Texto visible en cada combobox (por índice de fila)
+  const [comboInputs, setComboInputs] = useState<string[]>(
+    quote?.items.map((i) => i.item?.name ?? "") || []
+  )
+
   const subtotal = lineItems.reduce((sum, li) => sum + li.quantity * li.unitPrice, 0)
   const discountAmount = subtotal * (discountPercent / 100)
   const netSubtotal = subtotal - discountAmount
@@ -65,10 +71,12 @@ export function SalesQuoteForm({ quote, customers, items, defaultCustomerId }: S
 
   function addLineItem() {
     setLineItems([...lineItems, { description: "", partNumber: "", quantity: 1, unitCost: 0, unitPrice: 0, unit: "unit" }])
+    setComboInputs((prev) => [...prev, ""])
   }
 
   function removeLineItem(index: number) {
     setLineItems(lineItems.filter((_, i) => i !== index))
+    setComboInputs((prev) => prev.filter((_, i) => i !== index))
   }
 
   function updateLineItem(index: number, field: keyof LineItem, value: string | number) {
@@ -80,6 +88,30 @@ export function SalesQuoteForm({ quote, customers, items, defaultCustomerId }: S
       }
       return { ...li, [field]: value }
     }))
+  }
+
+  function handleComboSelect(index: number, item: Item | null) {
+    if (item) {
+      setLineItems(lineItems.map((li, i) =>
+        i !== index ? li : {
+          ...li,
+          itemId: item.id,
+          description: item.name,
+          partNumber: item.partNumber || li.partNumber,
+          unit: item.unitOfMeasure || li.unit,
+        }
+      ))
+      setComboInputs((prev) => prev.map((v, i) => i === index ? item.name : v))
+    } else {
+      // Limpiar selección → free text
+      setLineItems(lineItems.map((li, i) =>
+        i !== index ? li : { ...li, itemId: undefined }
+      ))
+    }
+  }
+
+  function handleComboInput(index: number, text: string) {
+    setComboInputs((prev) => prev.map((v, i) => i === index ? text : v))
   }
 
   function getMargin(li: LineItem): string {
@@ -269,10 +301,13 @@ export function SalesQuoteForm({ quote, customers, items, defaultCustomerId }: S
                   {lineItems.map((li, index) => (
                     <tr key={index} className="border-b border-[#F5F5F5] last:border-0">
                       <td className="px-3 py-2">
-                        <select value={li.itemId || ""} onChange={(e) => updateLineItem(index, "itemId", e.target.value)} className={cellInp}>
-                          <option value="">Free text</option>
-                          {items.map((it) => <option key={it.id} value={it.id}>{it.name}</option>)}
-                        </select>
+                        <ItemCombobox
+                          items={items}
+                          value={li.itemId || ""}
+                          inputValue={comboInputs[index] ?? ""}
+                          onSelect={(item) => handleComboSelect(index, item)}
+                          onInputChange={(text) => handleComboInput(index, text)}
+                        />
                       </td>
                       <td className="px-3 py-2">
                         <input value={li.description} onChange={(e) => updateLineItem(index, "description", e.target.value)}
